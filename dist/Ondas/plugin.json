@@ -1,0 +1,47 @@
+{
+  "slug": "Ondas",
+  "name": "Ondas",
+  "version": "2.0.0",
+  "license": "MIT",
+  "brand": "Ondas",
+  "author": "Sergio Rodriguez Gomez",
+  "authorEmail": "ssergiorodriguez[at]hotmail.com",
+  "authorUrl": "srsergiorodriguez.github.io",
+  "pluginUrl": "https://github.com/srsergiorodriguez/ondas",
+  "manualUrl": "https://github.com/srsergiorodriguez/ondas",
+  "sourceUrl": "https://github.com/srsergiorodriguez/ondas",
+  "donateUrl": "https://github.com/srsergiorodriguez/ondas",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Klok",
+      "name": "Klok",
+      "description": "Clock with modulo division",
+      "tags": ["Clock generator", "Clock modulator"]
+    },
+    {
+      "slug": "Secu",
+      "name": "Secu",
+      "description": "Sequencer with probability",
+      "tags": ["Sequencer", "Clock modulator"]
+    },
+    {
+      "slug": "BaBum",
+      "name": "BaBum",
+      "description": "Drum synthesizer",
+      "tags": ["Drum"]
+    },
+    {
+      "slug": "Scener",
+      "name": "Scener",
+      "description": "",
+      "tags": ["Sequencer", "Utility"]
+    },
+    {
+      "slug": "Distroi",
+      "name": "Distroi",
+      "description": "Sound corruption effects",
+      "tags": ["Effect", "Distortion", "Digital"]
+    }
+  ]
+}
