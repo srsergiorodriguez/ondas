@@ -8,21 +8,21 @@
   "authorEmail": "ssergiorodriguez[at]hotmail.com",
   "authorUrl": "srsergiorodriguez.github.io",
   "pluginUrl": "https://github.com/srsergiorodriguez/ondas",
-  "manualUrl": "https://github.com/srsergiorodriguez/ondas",
+  "manualUrl": "https://github.com/srsergiorodriguez/ondas/blob/main/README.md",
   "sourceUrl": "https://github.com/srsergiorodriguez/ondas",
-  "donateUrl": "https://github.com/srsergiorodriguez/ondas",
-  "changelogUrl": "",
+  "donateUrl": "https://buymeacoffee.com/srsergior",
+  "changelogUrl": "https://github.com/srsergiorodriguez/ondas/blob/main/changelog.md",
   "modules": [
     {
       "slug": "Klok",
       "name": "Klok",
-      "description": "Clock with modulo division",
+      "description": "Clock generator with modulo outputs",
       "tags": ["Clock generator", "Clock modulator"]
     },
     {
       "slug": "Secu",
       "name": "Secu",
-      "description": "Sequencer with probability",
+      "description": "Step sequencer with probability & randomization",
       "tags": ["Sequencer", "Clock modulator"]
     },
     {
@@ -34,13 +34,13 @@
     {
       "slug": "Scener",
       "name": "Scener",
-      "description": "",
+      "description": "Scene-based channel mixer",
       "tags": ["Sequencer", "Utility"]
     },
     {
       "slug": "Distroi",
       "name": "Distroi",
-      "description": "Sound corruption effects",
+      "description": "Signal corruption effects",
       "tags": ["Effect", "Distortion", "Digital"]
     }
   ]
