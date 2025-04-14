@@ -168,6 +168,7 @@ Process BaBum’s FX output through Distroi’s bitcrush and glitch effects, mod
 
 ## Attribution and License
 
-By Sergio Rodríguez Gómez - 2025
-MIT LICENSE
+Copyright 2025 - Sergio Rodríguez Gómez
+Source code: GPL-3.0-or-later License
+Visual design: CC BY-NC-SA 4.0 License
 
