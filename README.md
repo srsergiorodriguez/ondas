@@ -3,12 +3,44 @@ Ondas is a series of free, open-source modules for VCV rack. It includes BaBum (
 
 By Sergio Rodríguez Gómez
 
+<img alt="all" src="imgs/all.png" height="600px">  
+
+## Table of Contents
+
+- [Ondas](#ondas)
+  - [Table of Contents](#table-of-contents)
+  - [Klok](#klok)
+    - [Description](#description)
+    - [Parameters](#parameters)
+    - [Inputs](#inputs)
+    - [Outputs](#outputs)
+  - [BaBum](#babum)
+    - [Description](#description-1)
+    - [Parameters](#parameters-1)
+    - [Inputs](#inputs-1)
+    - [Outputs](#outputs-1)
+  - [Secu](#secu)
+    - [Description](#description-2)
+    - [Parameters](#parameters-2)
+    - [Inputs](#inputs-2)
+    - [Outputs](#outputs-2)
+  - [Scener](#scener)
+    - [Description](#description-3)
+    - [Parameters](#parameters-3)
+    - [Inputs](#inputs-3)
+    - [Outputs](#outputs-3)
+  - [Distroi](#distroi)
+    - [Description](#description-4)
+    - [Parameters (Per Effect)](#parameters-per-effect)
+    - [Inputs](#inputs-4)
+    - [Outputs](#outputs-4)
+  - [Suggestions for combining Modules](#suggestions-for-combining-modules)
+  - [Attribution and License](#attribution-and-license)
+
 ## Klok
 Clock generator with modulo outputs
 
-![Klok](imgs/klok.png)
-
-<img src="imgs/klok.png" height="400px">  
+<img alt="Klok" src="imgs/klok.png" height="400px">  
 
 ### Description
 Klok generates a master clock signal with reset functionality and 8 modulo outputs for rhythmic divisions. Ideal for syncing sequencers, drum modules, or modulation sources. Drive sequencers like Secu or drum modules like BaBum. Create polyrhythms by combining multiple modulo outputs.
@@ -26,6 +58,8 @@ Klok generates a master clock signal with reset functionality and 8 modulo outpu
 
 ## BaBum
 Drum Synthesizer
+
+<img alt="BaBum" src="imgs/babum.png" height="400px">  
 
 ### Description
 BaBum is a 5-part drum synthesizer featuring Kick (BD), Snare (SNR), Closed HiHat (HH), Open HiHat (HHO), and FX sounds. Each part includes customizable tuning, envelope shaping, distortion, and individual outputs. A mix output combines all signals with adjustable levels. Use sequencers (e.g., Secu) to trigger patterns.
@@ -49,6 +83,8 @@ BaBum is a 5-part drum synthesizer featuring Kick (BD), Snare (SNR), Closed HiHa
 ## Secu
 Step sequencer with probability & randomization
 
+<img alt="Secu" src="imgs/secu.png" height="400px">  
+
 ### Description
 Secu is a 5-channel, 8-step sequencer with per-step gates, randomization, and probability-based step jumping. Pair with Klok for tempo-synced sequences. Control drum modules like BaBum or modulate effects in Distroi.
 
@@ -67,9 +103,10 @@ Secu is a 5-channel, 8-step sequencer with per-step gates, randomization, and pr
 ### Outputs
 - Trigger Outputs (1–5): Gate signals for each channel.
 
-
 ## Scener
 Scene-based channel mixer
+
+<img alt="Scener" src="imgs/scener.png" height="400px">  
 
 ### Description
 Scener manages 6 scenes with 5 input/output channels each, allowing crossfaded transitions between scenes. Includes alerts for triggering events at specific steps. Build song structures by switching between scenes. Use alerts to synchronize effects (e.g., Distroi glitches) with scene changes.
@@ -91,6 +128,8 @@ Scener manages 6 scenes with 5 input/output channels each, allowing crossfaded t
 
 ## Distroi
 Multi-effect signal corruptor
+
+<img alt="Distroi" src="imgs/distroi.png" height="400px">  
 
 ### Description
 Distroi applies five destructive effects:
@@ -126,4 +165,9 @@ Use Scener to switch between pre-configured scenes, with Distroi adding real-tim
 
 Experimental Sound Design:
 Process BaBum’s FX output through Distroi’s bitcrush and glitch effects, modulated by Klok’s modulo outputs.
+
+## Attribution and License
+
+By Sergio Rodríguez Gómez - 2025
+MIT LICENSE
 
