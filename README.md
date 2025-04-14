@@ -3,7 +3,7 @@ Ondas is a series of free, open-source modules for VCV rack. It includes BaBum (
 
 By Sergio Rodríguez Gómez
 
-<img alt="all" src="imgs/all.png" height="600px">  
+![all](imgs/all.png)
 
 ## Table of Contents
 
