@@ -55,14 +55,14 @@ struct TextDisplayWidget : TransparentWidget {
 	void drawText(const DrawArgs& args) {
 		const char* text = displayText.c_str();
 
-		nvgFontSize(args.vg, fontSize);                  // Font size
+		nvgFontSize(args.vg, fontSize);  // Font size
 		if (customFont) {
 			nvgFontFaceId(args.vg, customFont->handle);
 		} else {
 			// Fallback to default font
 			nvgFontFaceId(args.vg, APP->window->uiFont->handle);
 		}
-		// nvgFontFaceId(args.vg, APP->window->uiFont->handle);  // Use VCV Rack's default font
+		
 		// Set the text color
 		NVGcolor textColor = nvgRGB(0, 0, 0);
 		nvgFillColor(args.vg, textColor);

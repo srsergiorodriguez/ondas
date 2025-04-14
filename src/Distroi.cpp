@@ -1,13 +1,13 @@
 #include "plugin.hpp"
 
 const int EFFECTSNR = 5;
-const int PARAMSNR = 3;
+const int PARAMSNR = 3; // Quantity, CV Attenuation, dry/wet
 const std::string NAMES[EFFECTSNR] = {"Bitcrush", "Decimate", "Distort", "Glitch", "Crop"};
 const int MAXGLITCHSAMPLES = (int)(48000 / 2);
 
 struct Distroi : Module {
 	enum ParamId {
-		ENUMS(BITCHRUSH_PARAM, PARAMSNR), // Quantity, CV Attenuation, dry/wet
+		ENUMS(BITCHRUSH_PARAM, PARAMSNR),
 		ENUMS(DECIMATE_PARAM, PARAMSNR),
 		ENUMS(DISTORT_PARAM, PARAMSNR),
 		ENUMS(GLITCH_PARAM, PARAMSNR),
@@ -24,7 +24,6 @@ struct Distroi : Module {
 		OUTPUTS_LEN
 	};
 	enum LightId {
-		ENUMS(LIGHT, EFFECTSNR),
 		LIGHTS_LEN
 	};
 
@@ -49,9 +48,9 @@ struct Distroi : Module {
 			configParam(PARAMS[i], 0.f, 1.f, 0.f, NAMES[i] + " effect quantity");
 			configParam(PARAMS[i] + 1, 0.f, 1.f, 0.f, NAMES[i] + " CV attenuator");
 			configParam(PARAMS[i] + 2, 0.f, 1.f, 0.5f, NAMES[i] +  " dry/wet");
-			configInput(INPUT + i, NAMES[i] + " input");
-			configInput(CV_INPUT + i, NAMES[i] + "  CV input");
-			configOutput(OUTPUT + i, NAMES[i] + " output");
+			configInput(INPUT + i, NAMES[i] + " signal");
+			configInput(CV_INPUT + i, NAMES[i] + " CV");
+			configOutput(OUTPUT + i, NAMES[i]);
 		}
 	}
 
@@ -170,7 +169,6 @@ struct DistroiWidget : ModuleWidget {
 			addInput(createInputCentered<PJ301MPort>(mm2px(Vec(minX3, controlsY + (divYcontrols * (i + 0.4f)))), module, Distroi::INPUT + i));
 			addInput(createInputCentered<PJ301MPort>(mm2px(Vec(minX3 + (divX3), controlsY + (divYcontrols * (i + 0.4f)))), module, Distroi::CV_INPUT + i));
 			addOutput(createOutputCentered<DarkPJ301MPort>(mm2px(Vec(minX3 + (divX3 * 2), controlsY + (divYcontrols * (i + 0.4f)))), module, Distroi::OUTPUT + i));
-			// addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(minX3 + (divX3 * 1.5), controlsY + (divYcontrols * (i + 0.4f)))), module, Distroi::LIGHT + i));
 		}
 	}
 };

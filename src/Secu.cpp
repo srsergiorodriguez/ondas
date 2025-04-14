@@ -73,7 +73,7 @@ struct Secu : Module {
 		configInput(RANDOM_INPUT, "Randomize");
 
 		for (int i = 0; i < OUTPUTS; i++) {
-			configOutput(OUTPUT + i, "Trigger " + std::to_string(i) + "Out");
+			configOutput(OUTPUT + i, "Trigger " + std::to_string(i));
 		}
 	}
 

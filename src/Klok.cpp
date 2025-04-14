@@ -46,7 +46,7 @@ struct Klok : Module {
 		configParam(TEMPO_PARAM, 30.0, 360.0, 120.0, "Set tempo", "BPM");
 		configOutput(RESET_OUTPUT, "Reset");
 		for (int i = 0; i < MOD_OUTPUTS; i++) {
-			configOutput(MOD_OUTPUT + i, "Modulo" + std::to_string(i));
+			configOutput(MOD_OUTPUT + i, "Modulo " + std::to_string(i));
 		}
 	}
 

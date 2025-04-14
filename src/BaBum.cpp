@@ -90,7 +90,6 @@ struct BaBum : Module {
 
 		configParam(PARAMBD_PARAM, 1.f, 10.f, 1.f, "Kick distortion");
 		configParam(PARAMSNR_PARAM, 1.f, 10.f, 1.f, "Snare distortion");
-		// configParam(PARAMHH_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(PARAMFX_PARAM, 1.f, 49.f, 1.f, "FX distortion");
 
 		configParam(TRIGBD_PARAM, 0.f, 1.f, 0.f, "Trigger Kick");
@@ -116,12 +115,12 @@ struct BaBum : Module {
 		configInput(HHO_INPUT, "Trigger HiHat Open");
 		configInput(FX_INPUT, "Trigger FX Sound");
 
-		configOutput(BD_OUTPUT, "Kick Out");
-		configOutput(SNR_OUTPUT, "Snare Out");
-		configOutput(HH_OUTPUT, "HiHat Closed Out");
-		configOutput(HHO_OUTPUT, "HiHat Open Out");
-		configOutput(FX_OUTPUT, "FX Sound Out");
-		configOutput(MIX_OUTPUT, "Mix Out");
+		configOutput(BD_OUTPUT, "Kick");
+		configOutput(SNR_OUTPUT, "Snare");
+		configOutput(HH_OUTPUT, "HiHat Closed");
+		configOutput(HHO_OUTPUT, "HiHat Open");
+		configOutput(FX_OUTPUT, "FX Sound");
+		configOutput(MIX_OUTPUT, "Mix");
 	}
 
 	void process(const ProcessArgs& args) override {
