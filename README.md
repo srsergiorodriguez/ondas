@@ -8,6 +8,8 @@ Clock generator with modulo outputs
 
 ![Klok](imgs/klok.png)
 
+<img src="imgs/klok.png" height="400px">  
+
 ### Description
 Klok generates a master clock signal with reset functionality and 8 modulo outputs for rhythmic divisions. Ideal for syncing sequencers, drum modules, or modulation sources. Drive sequencers like Secu or drum modules like BaBum. Create polyrhythms by combining multiple modulo outputs.
 
