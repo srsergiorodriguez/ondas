@@ -1,3 +1,7 @@
 .DS_Store
 /build
 /dist
+/plugin.so
+/plugin.dylib
+/plugin.dll
+.vscode
