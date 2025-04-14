@@ -1,4 +1,4 @@
-## 1.0.0 (2025-04-14)
+## 2.0.1 (2025-04-14)
 
 First release with the folllowing modules:
 
