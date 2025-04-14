@@ -51,11 +51,11 @@ struct Scener : Module {
 	Scener() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		for (int i = 0; i < SIGNALS; i++) {
-			configInput(SIGNAL_INPUT + i, "Signal in " + std::to_string(i % COLUMNS));
+			configInput(SIGNAL_INPUT + i, "Signal " + std::to_string(i % COLUMNS) + " scene " + std::to_string((int)floor(i / COLUMNS)));
 		}
 
 		for (int i = 0; i < COLUMNS; i++) {
-			configOutput(SIGNAL_OUTPUT + i, "Signal out " + std::to_string(i));
+			configOutput(SIGNAL_OUTPUT + i, "Signal " + std::to_string(i));
 		}
 
 		for (int i = 0; i < ROWS; i++) {
@@ -64,7 +64,7 @@ struct Scener : Module {
 
 		for (int i = 0; i < ALERTS; i++) {
 			configParam(ALERT_PARAM + i, 0.f, 1.f, 1.f, "Alert " + std::to_string(i));
-			configOutput(ALERT_OUTPUT + i, "Alert out " + std::to_string(i));
+			configOutput(ALERT_OUTPUT + i, "Alert " + std::to_string(i));
 		}
 		configInput(TRIGGER_INPUT, "Trigger");
 		configParam(LOOP_PARAM, 0.f, 1.f, 0.f, "Loop toggle");
