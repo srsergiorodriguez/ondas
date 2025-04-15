@@ -7,3 +7,4 @@
 .vscode
 plugin.dylib
 plugin.dylib
+*.dylib
