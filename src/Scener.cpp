@@ -37,6 +37,7 @@ struct Scener : Module {
 	dsp::SchmittTrigger edgeDetector;
 	dsp::SchmittTrigger edgeDetectorReset;
 	dsp::PulseGenerator pgenAlert[2];
+	dsp::PulseGenerator pgenTrigger;
 
 	int stepCount = 0;
 	int sceneStepCount = 0;
@@ -67,7 +68,7 @@ struct Scener : Module {
 			configOutput(ALERT_OUTPUT + i, "Alert " + std::to_string(i));
 		}
 		configInput(TRIGGER_INPUT, "Trigger");
-		configParam(LOOP_PARAM, 0.f, 1.f, 0.f, "Loop toggle");
+		configParam(LOOP_PARAM, 1.f, 1.f, 0.f, "Loop toggle");
 		configParam(TRANSITION_PARAM, 0.f, 3.f, 0.f, "Crossfade transition time");
 		configInput(RESET_INPUT, "Reset");
 		configButton(RESET_PARAM, "Reset");
@@ -92,11 +93,16 @@ struct Scener : Module {
 			}
 		}
 
+		lights[TRIGGER_LIGHT].setBrightness(0.f);
+
 		if (trigger) {
 			stepCount++;
 			sceneStepCount++;
 			prevScene = currentScene;
 			currentScene = 0;
+
+			pgenTrigger.trigger(0.1);
+			lights[TRIGGER_LIGHT].setBrightness(1.f);
 
 			int totalSteps = 0;
 			for (int i = 0; i < params[SCENES_PARAM].getValue(); i++) {
@@ -152,6 +158,8 @@ struct Scener : Module {
 		for (int i = 0; i < ALERTS; i++) {
 			outputs[ALERT_OUTPUT + i].setVoltage(10.f * pgenAlert[i].process(args.sampleTime));
 		}
+
+		lights[TRIGGER_LIGHT].setBrightness(pgenTrigger.process(args.sampleTime));	
 
 		if (params[RESET_PARAM].getValue() || edgeDetectorReset.process(inputs[RESET_INPUT].getVoltage())) {
 			stepCount = 0;
