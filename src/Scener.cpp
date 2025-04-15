@@ -68,7 +68,7 @@ struct Scener : Module {
 			configOutput(ALERT_OUTPUT + i, "Alert " + std::to_string(i));
 		}
 		configInput(TRIGGER_INPUT, "Trigger");
-		configParam(LOOP_PARAM, 1.f, 1.f, 0.f, "Loop toggle");
+		configParam(LOOP_PARAM, 0.f, 1.f, 1.f, "Loop toggle");
 		configParam(TRANSITION_PARAM, 0.f, 3.f, 0.f, "Crossfade transition time");
 		configInput(RESET_INPUT, "Reset");
 		configButton(RESET_PARAM, "Reset");
