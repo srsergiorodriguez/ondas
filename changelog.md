@@ -1,3 +1,7 @@
+## 2.0.3 (2025-04-15)
+
+- Fixed: trigger light on Scener
+
 ## 2.0.1 (2025-04-14)
 
 First release with the folllowing modules:
