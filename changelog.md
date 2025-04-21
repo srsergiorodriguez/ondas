@@ -1,3 +1,6 @@
+## 2.0.4 (2025-04-15)
+- Removed publin binaries from repo and source
+
 ## 2.0.3 (2025-04-15)
 
 - Fixed: trigger light on Scener
