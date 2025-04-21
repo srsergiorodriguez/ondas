@@ -5,6 +5,4 @@
 /plugin.dylib
 /plugin.dll
 .vscode
-plugin.dylib
-plugin.dylib
 *.dylib
