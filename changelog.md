@@ -1,4 +1,4 @@
-## 2.0.4 (2025-04-15)
+## 2.0.4 (2025-04-20)
 - Removed plugin binaries from repo and source
 
 ## 2.0.3 (2025-04-15)
