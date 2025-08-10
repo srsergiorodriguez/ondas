@@ -73,6 +73,8 @@ struct BaBum : Module {
 	dsp::SchmittTrigger edgeDetectors[PARTS];
 	dsp::RCFilter noiseFilter;
 
+	BabumExpanderMessage rightMessages[2][1];
+
 	ParamId TRIGGERS_PARAM[PARTS] = {TRIGBD_PARAM, TRIGSNR_PARAM, TRIGHH_PARAM, TRIGHHO_PARAM, TRIGFX_PARAM};
 	ParamId LENGTHS_PARAM[PARTS] = {LENGTHBD_PARAM, LENGTHSNR_PARAM, LENGTHHH_PARAM, LENGTHHH_PARAM, LENGTHFX_PARAM};
 
@@ -98,7 +100,7 @@ struct BaBum : Module {
 		configParam(TRIGHHO_PARAM, 0.f, 1.f, 0.f, "Trigger HiHat Open");
 		configParam(TRIGFX_PARAM, 0.f, 1.f, 0.f, "Trigger FX sound");
 
-		configParam(MIXBD_PARAM, 0.f, 1.f, 0.5f, "BassDrum Mix");
+		configParam(MIXBD_PARAM, 0.f, 1.f, 0.5f, "Kick Mix");
 		configParam(MIXSNR_PARAM, 0.f, 1.f, 0.5f, "Snare Mix");
 		configParam(MIXHH_PARAM, 0.f, 1.f, 0.5f, "HiHat Closed Mix");
 		configParam(MIXHHO_PARAM, 0.f, 1.f, 0.5f, "HiHat Open Mix");
@@ -121,6 +123,9 @@ struct BaBum : Module {
 		configOutput(HHO_OUTPUT, "HiHat Open");
 		configOutput(FX_OUTPUT, "FX Sound");
 		configOutput(MIX_OUTPUT, "Mix");
+
+		rightExpander.producerMessage = rightMessages[0];
+		rightExpander.consumerMessage = rightMessages[1];
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -131,16 +136,51 @@ struct BaBum : Module {
 		noiseFilter.process(noise);
 		float filteredNoise = noiseFilter.highpass();
 
-		float connectedInputs = 0.f;
 		float generalMix = 0.f;
+		float mixWeights = 0.f;
 
 		for (int i = 0; i < PARTS; i++) {
 			lights[LIGHTBD_LIGHT + i].setBrightness(0.f);
-			if (!inputs[BD_INPUT + i].isConnected()) continue;
-			connectedInputs += 1.f;
+
+			// Expander management
+			float inLength = 0.f;
+
+			float kickDistortion = 0.f;
+			float snareDistortion = 0.f;
+			float fxDistortion = 0.f;
+
+			bool hasExpander = (rightExpander.module && rightExpander.module->model == modelBap);
+			if (hasExpander) {
+				BabumExpanderMessage *messageFromExpander = (BabumExpanderMessage*)(rightExpander.module->leftExpander.consumerMessage);
+
+				switch(i)
+				{
+					case 0: inLength = messageFromExpander->kickLength;
+					break;
+					case 1: inLength = messageFromExpander->snareLength;
+					break;
+					case 2: inLength = messageFromExpander->hihatLength;
+					break;
+					case 3: inLength = messageFromExpander->hihatLength;
+					break;
+					case 4: inLength = messageFromExpander->fxLength;
+					break;
+					default: inLength = 0.f;
+				}
+
+				kickDistortion = messageFromExpander->kickDistortion;
+				snareDistortion = messageFromExpander->snareDistortion;
+				fxDistortion = messageFromExpander->fxDistortion;
+
+				// BabumExpanderMessage *messageToExpander = (BabumExpanderMessage*)(rightExpander.module->leftExpander.producerMessage);
+				// messageToExpander->somethingToSendToTheExpander = someModuleValue;
+
+				rightExpander.module->leftExpander.messageFlipRequested = true;
+			}
+			// End of expander management
 
 			float triggerValue = params[TRIGGERS_PARAM[i]].getValue();
-			float gateRatio = 7.f - params[LENGTHS_PARAM[i]].getValue();
+			float gateRatio = 7.f - clamp(params[LENGTHS_PARAM[i]].getValue() + inLength, 0.001f, 5.f);
 
 			if (triggerValue >= 0.01 || edgeDetectors[i].process(inputs[BD_INPUT+i].getVoltage())) {
 				// Trigger if more than 0
@@ -166,53 +206,52 @@ struct BaBum : Module {
 				oscRamps[i] = 1.f; // amp Set to one so it doesnt make an abrupt noise
 
 			float pgenState = pgens[i].process(args.sampleTime);
-			float amp;
+			float amp = clamp(ampRamps[i] < CLIP_RATIO ? ampRamps[i] / CLIP_RATIO : pow(1 - ampRamps[i] + CLIP_RATIO, 2), 0.0f, 1.0f) * 0.5;
 			float mix;
 
 			// Specific code for each instrument
 			if (i == 0) {
 				float tune = clamp(params[TUNEBD_PARAM].getValue() + clamp(inputs[TUNEBD_INPUT].getVoltage() / 10.f, 0.f, 1.f), 0.f, 1.f);
-				float drive = params[PARAMBD_PARAM].getValue(); // This could be another param
-				amp = clamp(ampRamps[i] < CLIP_RATIO ? ampRamps[i] / CLIP_RATIO : pow(1 - ampRamps[i] + CLIP_RATIO, 2), 0.0f, 1.0f);
+				float drive = clamp(params[PARAMBD_PARAM].getValue() + kickDistortion, 1.f, 10.f); // This could be another param
 				float osc = clamp(sin(sqrt(oscRamps[i]) * ((tune * 200) + 50)) * drive, -1.0f, 1.0f);
-				mix = osc * amp * params[MIXBD_PARAM].getValue(); ; // First part is the osc, second part is the amp then the mixer volume
+				mix = osc * amp * params[MIXBD_PARAM].getValue(); // First part is the osc, second part is the amp then the mixer volume
 			}
 
 			if (i == 1) {
 				float tune = clamp(params[TUNESNR_PARAM].getValue() + clamp(inputs[TUNESNR_INPUT].getVoltage() / 10.f, 0.f, 1.f), 0.f, 1.f);
-				float drive = params[PARAMSNR_PARAM].getValue(); // This could be another param
-				amp = clamp(ampRamps[i] < CLIP_RATIO ? ampRamps[i] / CLIP_RATIO : pow(1 - ampRamps[i] + CLIP_RATIO, 2), 0.0f, 1.0f);
-				float amp2 = pow(1 - ampRamps[i] + CLIP_RATIO, 6);
+				float drive = clamp(params[PARAMSNR_PARAM].getValue() + snareDistortion, 1.f, 10.f);
+				float amp2 = pow(1 - ampRamps[i] + CLIP_RATIO, 6) * 0.5;
 				float osc = clamp(sin(sqrt(oscRamps[i]) * ((tune * 100) + 100)) * drive, -1.0f, 1.0f);
-				mix = ((osc * amp) + (noise * 0.5 * amp2)) * params[MIXSNR_PARAM].getValue(); ; // First part is the osc, second part is the amp then the mixer volume
+				mix = ((osc * amp) + (noise * 0.5 * amp2)) * params[MIXSNR_PARAM].getValue(); // First part is the osc, second part is the amp then the mixer volume
 			}
 
 			if (i == 2) {
-				amp = clamp(ampRamps[i] < CLIP_RATIO ? ampRamps[i] / CLIP_RATIO : pow(1 - ampRamps[i] + CLIP_RATIO, 10), 0.0f, 1.0f);
-				mix = filteredNoise * amp * params[MIXHH_PARAM].getValue(); ; // First part is the osc, second part is the amp then the mixer volume
+				float amp2 = pow(1 - ampRamps[i] + CLIP_RATIO, 6) * 0.5;
+				mix = filteredNoise * amp2 * params[MIXHH_PARAM].getValue(); // First part is the osc, second part is the amp then the mixer volume
 			}
 
 			if (i == 3) {
-				amp = clamp(ampRamps[i] < CLIP_RATIO ? ampRamps[i] / CLIP_RATIO : pow(1 - ampRamps[i] + CLIP_RATIO, 2), 0.0f, 1.0f);
-				mix = filteredNoise * amp * params[MIXHHO_PARAM].getValue(); ; // First part is the osc, second part is the amp then the mixer volume
+				mix = filteredNoise * amp * params[MIXHHO_PARAM].getValue(); // First part is the osc, second part is the amp then the mixer volume
 			}
 
 			if (i == 4) {
 				float tune = clamp(params[TUNEFX_PARAM].getValue() + clamp(inputs[TUNEFX_INPUT].getVoltage() / 10.f, 0.f, 1.f), 0.f, 1.f);
-				float drive = params[PARAMFX_PARAM].getValue(); // This could be another param
+				float drive = clamp(params[PARAMFX_PARAM].getValue() + fxDistortion, 1.f, 10.f);
 				float osc = clamp(sin(sqrt(oscRamps[i] * oscRamps[i] * oscRamps[i]) * ((tune * 1000) + 80)) * drive, -1.0f, 1.0f);
-				amp = clamp(ampRamps[i] < CLIP_RATIO ? ampRamps[i] / CLIP_RATIO : pow(1 - ampRamps[i] + CLIP_RATIO, 2), 0.0f, 1.0f);
-				mix = osc * amp * params[MIXFX_PARAM].getValue(); ; // First part is the osc, second part is the amp then the mixer volume
+				mix = osc * amp * params[MIXFX_PARAM].getValue(); // First part is the osc, second part is the amp then the mixer volume
 			}
 
 			float mixV = mix * 10.f * pgenState;
 
 			generalMix += mixV;
+			mixWeights += params[MIXBD_PARAM + i].getValue();
 
 			outputs[BD_OUTPUT + i].setVoltage(mixV);
 			lights[LIGHTBD_LIGHT + i].setBrightness(amp);
 		}
-		outputs[MIX_OUTPUT].setVoltage(generalMix / (connectedInputs + 0.0000000001));
+
+		float master = (mixWeights > 0.f) ? (generalMix / mixWeights) * 1.5 : 0.f;
+		outputs[MIX_OUTPUT].setVoltage(master);
 	}
 };
 
@@ -273,6 +312,5 @@ struct BaBumWidget : ModuleWidget {
 		addOutput(createOutputCentered<DarkPJ301MPort>(mm2px(Vec(minX5 + (div5 * 2), outY + 10.f)), module, BaBum::MIX_OUTPUT));		
 	}
 };
-
 
 Model* modelBaBum = createModel<BaBum, BaBumWidget>("BaBum");

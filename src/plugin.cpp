@@ -10,4 +10,11 @@ void init(Plugin* p) {
 	p->addModel(modelBaBum);
 	p->addModel(modelScener);
 	p->addModel(modelDistroi);
+	p->addModel(modelLogistic);
+	p->addModel(modelBap);
+	p->addModel(modelBittorio);
+	p->addModel(modelKtick);
+	p->addModel(modelHiller);
+	p->addModel(modelScenerProMax);
+	p->addModel(modelNorbert);
 }

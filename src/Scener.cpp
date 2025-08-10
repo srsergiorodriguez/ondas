@@ -36,7 +36,7 @@ struct Scener : Module {
 
 	dsp::SchmittTrigger edgeDetector;
 	dsp::SchmittTrigger edgeDetectorReset;
-	dsp::PulseGenerator pgenAlert[2];
+	dsp::PulseGenerator pgenAlert[ALERTS];
 	dsp::PulseGenerator pgenTrigger;
 
 	int stepCount = 0;
@@ -69,7 +69,7 @@ struct Scener : Module {
 		}
 		configInput(TRIGGER_INPUT, "Trigger");
 		configParam(LOOP_PARAM, 0.f, 1.f, 1.f, "Loop toggle");
-		configParam(TRANSITION_PARAM, 0.f, 3.f, 0.f, "Crossfade transition time");
+		configParam(TRANSITION_PARAM, 0.f, 20.f, 0.f, "Crossfade transition time (Seconds)");
 		configInput(RESET_INPUT, "Reset");
 		configButton(RESET_PARAM, "Reset");
 		configParam(SCENES_PARAM, 1.f, (float)(ROWS), (float)(ROWS), "Scenes");
@@ -80,7 +80,26 @@ struct Scener : Module {
 	void process(const ProcessArgs& args) override {
 		float inV = inputs[TRIGGER_INPUT].getVoltage();
 		float trigger = edgeDetector.process(inV);
-		float gateRatio = params[TRANSITION_PARAM].getValue();
+		float transitionTime = params[TRANSITION_PARAM].getValue();
+
+		lights[TRIGGER_LIGHT].setBrightness(0.f);
+
+		if (params[RESET_PARAM].getValue() || edgeDetectorReset.process(inputs[RESET_INPUT].getVoltage())) {
+			// Reset all values
+			stepCount = 0;
+			sceneStepCount = 0;
+			currentScene = 0;
+			prevScene = 0;
+			ramp = 0.f;
+			finished = false;
+			starting = true;
+			for (int i = 0; i < ROWS; i++) {
+				lights[SCENE_LIGHT+i].setBrightness(0);
+				if (currentScene == i) {
+					lights[SCENE_LIGHT+i].setBrightness(1);
+				}
+			}
+		}
 
 		if (starting) {
 			starting = false;
@@ -93,39 +112,40 @@ struct Scener : Module {
 			}
 		}
 
-		lights[TRIGGER_LIGHT].setBrightness(0.f);
-
 		if (trigger) {
-			stepCount++;
-			sceneStepCount++;
-			prevScene = currentScene;
-			currentScene = 0;
+			stepCount++; // All steps elapsed
+			sceneStepCount++; // Steps elapsed in current scene
 
-			pgenTrigger.trigger(0.1);
+			pgenTrigger.trigger(0.1f);
 			lights[TRIGGER_LIGHT].setBrightness(1.f);
 
-			int totalSteps = 0;
+			int totalSteps = 0; // Get all steps in total for all the scenes
 			for (int i = 0; i < params[SCENES_PARAM].getValue(); i++) {
 				int steps = (int)(params[STEPS_PARAM + i].getValue());
-				if (stepCount > totalSteps) {
-					currentScene = i;
-				}
 				totalSteps += steps;
 			}
 
-			if (params[LOOP_PARAM].getValue()) {
-				stepCount %= totalSteps;
-			} else if (stepCount >= totalSteps && !finished) {
-				finished = true;
-				ramp = 0.f;
+			if (stepCount >= totalSteps) {
+				if (params[LOOP_PARAM].getValue()) {
+					sceneStepCount = 0;
+					stepCount = 0;
+				} else {
+					finished = true;
+				}
 			}
 
-			if (currentScene != prevScene) {
-				sceneStepCount = 0;
-				ramp = 0.f;
+			int stepsIncr = 0;
+			int tempCurrentScene;
+			for (int i = 0; i < params[SCENES_PARAM].getValue(); i++) {
+				int steps = (int)(params[STEPS_PARAM + i].getValue());
+				if (stepCount >= stepsIncr) {
+					tempCurrentScene = i; // Set current scene based on steps elapsed
+				}
+				stepsIncr += steps;
 			}
 
 			for (int i = 0; i < ALERTS; i++) {
+				// Turn on alert if current scenStepCount corrsponds to the percentage of the total scene specified in the alert
 				float alert = (int)(params[STEPS_PARAM + currentScene].getValue() * params[ALERT_PARAM + i].getValue());
 				lights[ALERT_LIGHT + i].setBrightness(alert == sceneStepCount ? 1.f : 0.f);
 				if (alert == sceneStepCount) {
@@ -133,21 +153,32 @@ struct Scener : Module {
 				}
 			}
 
+			if (tempCurrentScene != currentScene) {
+				// Scene changed
+				prevScene = currentScene;
+				sceneStepCount = 0;
+				ramp = 0.f; // Set ramp to 0 so it starts incrementing again
+			}
+			currentScene = tempCurrentScene;
+
 			for (int i = 0; i < ROWS; i++) {
 				lights[SCENE_LIGHT+i].setBrightness(0);
 				if (currentScene == i) {
 					lights[SCENE_LIGHT+i].setBrightness(1);
 				}
-			}	
+			}
 		}
 
-		ramp += args.sampleTime * (1.f / gateRatio); // Cycles per second
+		// Set the ramp for crossfading
+		float step = (transitionTime > 0.f) ? args.sampleTime / transitionTime : 1.f;
+		ramp += step;
 		if (ramp >= 1.f)
 			ramp = 1.f;
 
 		for (int i = 0; i < COLUMNS; i++) {
 			float a = inputs[SIGNAL_INPUT + ((prevScene * COLUMNS) + i)].getVoltage();
 			float b = inputs[SIGNAL_INPUT + ((currentScene * COLUMNS) + i)].getVoltage();
+			// Apply crossfade
 			if (finished) {
 				outputs[SIGNAL_OUTPUT + i].setVoltage(a * (1 - ramp));
 			} else {
@@ -160,12 +191,6 @@ struct Scener : Module {
 		}
 
 		lights[TRIGGER_LIGHT].setBrightness(pgenTrigger.process(args.sampleTime));	
-
-		if (params[RESET_PARAM].getValue() || edgeDetectorReset.process(inputs[RESET_INPUT].getVoltage())) {
-			stepCount = 0;
-			currentScene = 0;
-			finished = false;
-		}
 
 	}
 };

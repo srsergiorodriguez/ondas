@@ -1,16 +1,7 @@
 #include "plugin.hpp"
 
-#include <iostream>
-#include <sstream>
-using namespace std;
-
 const int MOD_OUTPUTS = 8;
-
-std::string Convert (float number){
-	std::ostringstream buff;
-	buff<<number;
-	return buff.str();
-}
+const int EXPANDER_OUTPUTS = 4;
 
 struct Klok : Module {
 	enum ParamId {
@@ -34,11 +25,17 @@ struct Klok : Module {
 	dsp::PulseGenerator pgen;
 	dsp::PulseGenerator preset;
 
-	float counter, period;
-	float TRIG_TIME = 1e-3f;
+	float counter, period = 0;
+	float TRIG_TIME = 1e-2f;
 	int steps = 0;
+	int expanderSteps = 0;
 	bool reset = true;
 	int output_offset = MOD_OUTPUT;
+
+	// Ktick expander
+	int KtickValues[4] = {1, 1, 1, 1};
+
+	KlokExpanderMessage rightMessages[2][1];
 
 	Klok() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -48,11 +45,24 @@ struct Klok : Module {
 		for (int i = 0; i < MOD_OUTPUTS; i++) {
 			configOutput(MOD_OUTPUT + i, "Modulo " + std::to_string(i));
 		}
+
+		rightExpander.producerMessage = rightMessages[0];
+		rightExpander.consumerMessage = rightMessages[1];
 	}
 
 	void process(const ProcessArgs& args) override {
 		float BPM = params[TEMPO_PARAM].getValue();
 		float running = params[RUN_PARAM].getValue();
+
+		bool hasExpander = (rightExpander.module && rightExpander.module->model == modelKtick);
+		if (hasExpander) {
+			KlokExpanderMessage *messageFromExpander = (KlokExpanderMessage*)(rightExpander.module->leftExpander.consumerMessage);
+			if (messageFromExpander) {
+				for (int i = 0; i < EXPANDER_OUTPUTS; i++) {
+					KtickValues[i] = std::max(1, messageFromExpander->factors[i]);
+				}
+			}
+		}
 
 		if (running) {
 			
@@ -66,13 +76,15 @@ struct Klok : Module {
 			outputs[RESET_OUTPUT].setVoltage(10.f * resetout);
 
 			// CLOCK PULSE
-			period = 60.f * args.sampleRate/(BPM * 2); // Samples that need to pass before a new trigger, get octave notes
+			period = 60.f * args.sampleRate/(BPM * 2); // Samples that need to pass before a new trigger, get eight notes
 
 			if (counter > period) {
 				pgen.trigger(TRIG_TIME);
 				counter -= period; // Compensate for small errors
 				steps++;
 				steps %= MOD_OUTPUTS;
+				expanderSteps++;
+				expanderSteps %= 256;
 			}
 			counter++;
 
@@ -85,9 +97,32 @@ struct Klok : Module {
 			}
 			lights[BLINK_LIGHT].setSmoothBrightness(out, 5e-6f); // Set light to value between 0 and 1, second argument sets vinishing time
 
+			if (hasExpander) {
+				KlokExpanderMessage *messageToExpander = (KlokExpanderMessage*)(rightExpander.module->leftExpander.producerMessage);
+				if (messageToExpander) {
+					for (int i = 0; i < EXPANDER_OUTPUTS; i++) {
+						messageToExpander->values[i] = expanderSteps - 1 % KtickValues[i] == 0 || expanderSteps % KtickValues[i] == 0 ? out * 10.f : 0.f;
+					}
+					rightExpander.module->leftExpander.messageFlipRequested = true;
+				}
+			}
+
 		} else {
-			counter = period = steps = 0;
+			counter = period = steps = expanderSteps = 0;
 			reset = true;
+			for (int i = output_offset; i < OUTPUTS_LEN; i++) {
+				outputs[i].setVoltage(0.f);
+			}
+			if (hasExpander) {
+				KlokExpanderMessage *messageToExpander = (KlokExpanderMessage*)(rightExpander.module->leftExpander.producerMessage);
+				if (messageToExpander) {
+					for (int i = 0; i < EXPANDER_OUTPUTS; i++) {
+						messageToExpander->values[i] = 0.f;
+					}
+					rightExpander.module->leftExpander.messageFlipRequested = true;
+				}
+				
+			}
 		}
 	}
 };

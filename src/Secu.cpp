@@ -84,6 +84,7 @@ struct Secu : Module {
 
 		if (edgeDetectorReset.process(inputs[RESET_INPUT].getVoltage())) {
 			stepNr = 0;
+			stepOut = stepNr;
 		}
 
 		if (params[RANDOM_PARAM].getValue() > 0.1) {
